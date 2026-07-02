@@ -1,0 +1,89 @@
+{
+  "grants": [
+    {
+      "grant_id": "ENV-2026-RIVER",
+      "grant_name": "Regional Waterway Restoration Fund",
+      "issuing_agency": "Department of Environmental Quality",
+      "deadline": "2026-08-15",
+      "requirements": {
+        "max_budget_usd": 25000,
+        "eligible_locations": ["Urban rivers", "Wetlands", "Lakes"],
+        "mandatory_sections": [
+          "Executive Summary",
+          "Ecological Impact Assessment",
+          "Volunteer Mobilization Plan",
+          "Itemized Budget"
+        ],
+        "word_count_limits": {
+          "Executive Summary": 250,
+          "Total Proposal": 2000
+        },
+        "prohibited_expenses": [
+          "Full-time staff salaries",
+          "Office rent",
+          "Political lobbying"
+        ],
+        "required_metrics": [
+          "Estimated tons of waste removed",
+          "Number of volunteers engaged"
+        ]
+      }
+    },
+    {
+      "grant_id": "URB-2026-CANOPY",
+      "grant_name": "Urban Canopy Expansion Grant",
+      "issuing_agency": "City Parks & Recreation Board",
+      "deadline": "2026-09-01",
+      "requirements": {
+        "max_budget_usd": 50000,
+        "eligible_locations": ["City parks", "Public school grounds", "Sidewalks"],
+        "mandatory_sections": [
+          "Community Needs Assessment",
+          "Species Selection Rationale",
+          "5-Year Maintenance & Watering Plan",
+          "Budget Narrative"
+        ],
+        "word_count_limits": {
+          "Community Needs Assessment": 500,
+          "Total Proposal": 3500
+        },
+        "prohibited_expenses": [
+          "Non-native tree species",
+          "Vehicles"
+        ],
+        "required_metrics": [
+          "Number of trees planted",
+          "Estimated CO2 offset per year"
+        ]
+      }
+    },
+    {
+      "grant_id": "EDU-2026-YOUTH",
+      "grant_name": "Next-Gen Climate Leaders Seed Grant",
+      "issuing_agency": "National Youth Climate Coalition",
+      "deadline": "2026-10-31",
+      "requirements": {
+        "max_budget_usd": 10000,
+        "eligible_locations": ["High schools", "Community centers"],
+        "mandatory_sections": [
+          "Project Overview",
+          "Educational Methodology",
+          "Timeline",
+          "Budget"
+        ],
+        "word_count_limits": {
+          "Project Overview": 300,
+          "Total Proposal": 1500
+        },
+        "prohibited_expenses": [
+          "International travel",
+          "Hardware (e.g., laptops, tablets)"
+        ],
+        "required_metrics": [
+          "Number of students educated",
+          "Pre- and post-program knowledge assessment plan"
+        ]
+      }
+    }
+  ]
+}
