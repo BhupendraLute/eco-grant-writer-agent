@@ -9,26 +9,37 @@ from grant_writer.agent import root_agent
 
 @pytest.fixture(autouse=True)
 def mock_gemini():
-    """Mocks the google.genai.Client to simulate the LLM-as-a-Judge model."""
+    """Mocks the google.genai.Client to simulate both the drafting and judging LLM calls."""
     with patch("grant_writer.agent.Client") as mock_client_cls:
         mock_client = MagicMock()
         mock_client_cls.return_value = mock_client
         
         def mock_generate_content(model, contents):
             mock_resp = MagicMock()
-            # Split the contents to extract only the draft portion (ignoring prompt instructions)
-            parts = contents.split("Proposal Draft:\n")
-            draft_content = parts[1] if len(parts) > 1 else contents
-            
-            # The template itself includes the general budget once (e.g., "$25,000").
-            # If '$' appears more than once in the draft content, it means a dollar amount was leaked.
-            dollar_count = draft_content.count("$")
-            has_bank = "bank account" in draft_content.lower()
-            
-            if dollar_count > 1 or has_bank:
-                mock_resp.text = "VIOLATION"
+            if "security compliance judge" in contents:
+                # 1. This is the judge call: extract only the proposal draft part
+                parts = contents.split("Proposal Draft:\n")
+                draft_content = parts[1] if len(parts) > 1 else contents
+                
+                # Check for dollar count (excluding general template format)
+                dollar_count = draft_content.count("$")
+                has_bank = "bank account" in draft_content.lower()
+                
+                if dollar_count > 1 or has_bank:
+                    mock_resp.text = "VIOLATION"
+                else:
+                    mock_resp.text = "SAFE"
             else:
-                mock_resp.text = "SAFE"
+                # 2. This is the dynamic drafting call: return a mock proposal text.
+                # Extract only the nonprofit notes portion of the prompt to avoid copying budget instructions.
+                parts = contents.split("Nonprofit Notes:\n")
+                notes_text = parts[1].strip() if len(parts) > 1 else contents
+                
+                mock_resp.text = (
+                    "GRANT PROPOSAL DRAFT\n"
+                    "Proposed Budget: $25,000 USD\n"
+                    f"Mock Proposal Details based on prompt notes: {notes_text}"
+                )
             return mock_resp
             
         mock_client.models.generate_content.side_effect = mock_generate_content

@@ -7,11 +7,53 @@ from google.adk.workflow import node, START, Workflow
 from google.adk.agents.context import Context
 from google.genai import types
 from google.genai import Client
+from google.adk.events.request_input import RequestInput
 
 # Define a basic state object to hold the nonprofit's input text and the drafted output
 class GrantWriterState(BaseModel):
     nonprofit_notes: str = ""
     drafted_proposal: str = ""
+
+async def ask_user_options(ctx: Context, prompt: str, options: list[str]) -> str | RequestInput:
+    """Prompts the user with a multiple-choice question and returns their selected option.
+    
+    If the response is not yet available, returns a RequestInput to trigger workflow interruption.
+    
+    Args:
+        ctx: The ADK Context.
+        prompt: The question or message to display.
+        options: A list of options for the user to choose from.
+    """
+    interrupt_id = "dynamic_user_choice"
+    if ctx.resume_inputs:
+        user_response = ctx.resume_inputs.get(interrupt_id)
+        if user_response:
+            if isinstance(user_response, dict):
+                val = str(user_response.get("result", "")).strip().lower()
+            else:
+                val = str(user_response).strip().lower()
+            
+            # 1. Map single letter choices (e.g. 'a' -> index 0, 'b' -> index 1)
+            for idx, opt in enumerate(options):
+                letter = chr(ord('a') + idx)
+                if val == letter or val == f"option {letter}":
+                    return opt
+            
+            # 2. Try matching full option name (case-insensitive substring match)
+            for opt in options:
+                if opt.lower() in val or val in opt.lower():
+                    return opt
+            
+            return val
+            
+    # Format options for the terminal or UI
+    formatted = []
+    for idx, opt in enumerate(options):
+        letter = chr(ord('A') + idx)
+        formatted.append(f"  {letter}) {opt}")
+    
+    message = f"{prompt}\nPlease select an option:\n" + "\n".join(formatted)
+    return RequestInput(message=message, interrupt_id=interrupt_id)
 
 # Define the nodes
 @node
@@ -89,16 +131,74 @@ async def DraftProposal(ctx: Context, nonprofit_notes: str):
         sections = "Executive Summary, Budget"
         metrics = "Volunteers engaged"
         
-    draft = (
-        f"GRANT PROPOSAL DRAFT\n"
+    # Construct the LLM prompt for drafting the proposal dynamically
+    draft_prompt = (
+        "You are an expert grant writer.\n"
+        "Write a professional grant proposal draft based on the following nonprofit notes and grant guidelines.\n"
+        "Ensure that the currency, language, and context are appropriate for any locations mentioned in the notes "
+        "(for example, if Mumbai or India is mentioned, use Indian Rupees (INR/₹) instead of USD and adapt the context appropriately).\n\n"
+        "Grant Guidelines:\n"
         f"Target Grant: {gname}\n"
         f"Issuing Agency: {agency}\n"
-        f"Proposed Budget: ${budget:,} USD\n"
-        f"Required Sections: {sections}\n"
-        f"Target Metrics: {metrics}\n"
-        f"Notes Summary: {nonprofit_notes}\n"
+        f"Max Budget: ${budget:,} USD (convert this to the target currency if the location dictates it)\n"
+        f"Mandatory Sections: {sections}\n"
+        f"Required Metrics: {metrics}\n\n"
+        "Nonprofit Notes:\n"
+        f"{nonprofit_notes}\n\n"
+        "Proposal Draft:"
     )
     
+    # Call the LLM to generate the proposal draft dynamically
+    print("[DraftProposal] Generating proposal draft via Gemini LLM...")
+    try:
+        client = Client()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=draft_prompt,
+        )
+        draft = response.text.strip()
+    except Exception as e:
+        print(f"[DraftProposal] Warning: LLM drafting failed ({str(e)}). Using local fallback.")
+        draft = (
+            f"GRANT PROPOSAL DRAFT\n"
+            f"Target Grant: {gname}\n"
+            f"Issuing Agency: {agency}\n"
+            f"Proposed Budget: ${budget:,} USD\n"
+            f"Required Sections: {sections}\n"
+            f"Target Metrics: {metrics}\n"
+            f"Notes Summary: {nonprofit_notes}\n"
+        )
+    
+    # Run the guardrail check
+    # --- LLM-as-a-Judge Security Guardrail ---
+    print(f"[DraftProposal] Running LLM-as-a-Judge security guardrail...")
+    
+    judge_prompt = (
+        "You are a security compliance judge. Analyze the following grant proposal draft.\n"
+        "Your task is to identify if it contains any specific dollar amounts (e.g., '$10,000') "
+        "or bank account numbers (e.g., '123456789').\n"
+        "Reply with exactly 'VIOLATION' if any are present, or 'SAFE' if none are present.\n\n"
+        f"Proposal Draft:\n{draft}"
+    )
+    
+    is_violation = False
+    try:
+        client = Client()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=judge_prompt,
+        )
+        verdict = response.text.strip().upper()
+        if "VIOLATION" in verdict:
+            is_violation = True
+    except Exception as e:
+        print(f"[DraftProposal] Warning: LLM-as-a-Judge failed ({str(e)}). Running fallback local guardrail.")
+        # Local regex/string scanning fallback
+        has_dollar = "$" in draft
+        has_bank = re.search(r"bank\s+account|\b\d{9,18}\b", draft, re.IGNORECASE) is not None
+        if has_dollar or has_bank:
+            is_violation = True
+
     # Check if we were already reviewed in a previous turn (human-in-the-loop)
     is_approved = False
     if ctx.resume_inputs:
@@ -117,49 +217,28 @@ async def DraftProposal(ctx: Context, nonprofit_notes: str):
             print("[DraftProposal] Resumed with user approval. Bypassing guardrail.")
         else:
             print(f"[DraftProposal] Warning: Unrecognized input: {val}")
-        
-    if not is_approved:
-        # --- LLM-as-a-Judge Security Guardrail ---
-        print(f"[DraftProposal] Running LLM-as-a-Judge security guardrail...")
-        
-        judge_prompt = (
-            "You are a security compliance judge. Analyze the following grant proposal draft.\n"
-            "Your task is to identify if it contains any specific dollar amounts (e.g., '$10,000') "
-            "or bank account numbers (e.g., '123456789').\n"
-            "Reply with exactly 'VIOLATION' if any are present, or 'SAFE' if none are present.\n\n"
-            f"Proposal Draft:\n{draft}"
-        )
-        
-        is_violation = False
-        try:
-            client = Client()
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=judge_prompt,
-            )
-            verdict = response.text.strip().upper()
-            if "VIOLATION" in verdict:
-                is_violation = True
-        except Exception as e:
-            print(f"[DraftProposal] Warning: LLM-as-a-Judge failed ({str(e)}). Running fallback local guardrail.")
-            # Local regex/string scanning fallback
-            has_dollar = "$" in draft
-            has_bank = re.search(r"bank\s+account|\b\d{9,18}\b", draft, re.IGNORECASE) is not None
-            if has_dollar or has_bank:
-                is_violation = True
 
-        if is_violation:
-            print("[DraftProposal] SECURITY ALERT: Draft flagged for human review.")
-            from google.adk.events.request_input import RequestInput
-            return RequestInput(
-                message=(
-                    "Security Guardrail Triggered: Draft proposal contains dollar amounts or bank account details.\n"
-                    "Please select an option:\n"
-                    "  A) Approve (bypass safety check and proceed)\n"
-                    "  B) Reject (abort execution)"
-                ),
-                interrupt_id="security_financial_review"
-            )
+    if is_violation and not is_approved:
+        print("[DraftProposal] SECURITY ALERT: Draft flagged for human review.")
+        # Call our dynamic options tool
+        choice = await ask_user_options(
+            ctx=ctx,
+            prompt="Security Guardrail Triggered: Draft proposal contains dollar amounts or bank account details.",
+            options=[
+                "Approve (bypass safety check and proceed)",
+                "Reject (abort execution)"
+            ]
+        )
+        # If it returned a RequestInput object, yield it to the runner to pause
+        if isinstance(choice, RequestInput):
+            return choice
+            
+        # Parse the returned selection
+        if "Reject" in choice:
+            print("[DraftProposal] Rejection received. Aborting.")
+            raise ValueError("Draft proposal was rejected by the user due to safety/compliance concerns.")
+        else:
+            print("[DraftProposal] Bypassing security check via user approval.")
         
     ctx.state['drafted_proposal'] = draft
     print(f"[DraftProposal] Created proposal draft according to MCP rules.")
