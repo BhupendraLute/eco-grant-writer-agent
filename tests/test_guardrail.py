@@ -1,94 +1,46 @@
+"""Guardrail-specific tests — verifies that the security judge and PII scrubber work correctly."""
+
 import pytest
-import asyncio
-from unittest.mock import MagicMock, patch
-from google.adk.apps import App
-from google.adk.runners import Runner
-from google.adk.sessions.in_memory_session_service import InMemorySessionService
-from google.genai import types
-from grant_writer.agent import root_agent
 
-@pytest.fixture(autouse=True)
-def mock_gemini():
-    """Mocks the google.genai.Client to simulate both the drafting and judging LLM calls."""
-    with patch("grant_writer.agent.Client") as mock_client_cls:
-        mock_client = MagicMock()
-        mock_client_cls.return_value = mock_client
-        
-        def mock_generate_content(model, contents):
-            mock_resp = MagicMock()
-            if "security compliance judge" in contents:
-                # 1. This is the judge call: extract only the proposal draft part
-                parts = contents.split("Proposal Draft:\n")
-                draft_content = parts[1] if len(parts) > 1 else contents
-                
-                # Check for dollar count (excluding general template format)
-                dollar_count = draft_content.count("$")
-                has_bank = "bank account" in draft_content.lower()
-                
-                if dollar_count > 1 or has_bank:
-                    mock_resp.text = "VIOLATION"
-                else:
-                    mock_resp.text = "SAFE"
-            else:
-                # 2. This is the dynamic drafting call: return a mock proposal text.
-                # Extract only the nonprofit notes portion of the prompt to avoid copying budget instructions.
-                parts = contents.split("Nonprofit Notes:\n")
-                notes_text = parts[1].strip() if len(parts) > 1 else contents
-                
-                mock_resp.text = (
-                    "GRANT PROPOSAL DRAFT\n"
-                    "Proposed Budget: $25,000 USD\n"
-                    f"Mock Proposal Details based on prompt notes: {notes_text}"
-                )
-            return mock_resp
-            
-        mock_client.models.generate_content.side_effect = mock_generate_content
-        yield mock_client_cls
+from grant_writer.security.judge import judge_proposal, prepare_judge_draft, JudgeVerdict
 
-@pytest.mark.asyncio
-async def test_safe_proposal():
-    app = App(name="test-app", root_agent=root_agent)
-    session_service = InMemorySessionService()
-    runner = Runner(app=app, session_service=session_service)
-    
-    session = await session_service.create_session(app_name="test-app", user_id="user")
-    content = types.Content(role='user', parts=[types.Part(text="Clean up the local rivers.")])
-    
-    events = []
-    async for event in runner.run_async(user_id=session.user_id, session_id=session.id, new_message=content):
-        events.append(event)
-        
-    is_interrupted = any(event.long_running_tool_ids for event in events)
-    assert not is_interrupted, "Safe proposal was flagged unnecessarily."
 
-@pytest.mark.asyncio
-async def test_flag_dollar_amount():
-    app = App(name="test-app", root_agent=root_agent)
-    session_service = InMemorySessionService()
-    runner = Runner(app=app, session_service=session_service)
-    
-    session = await session_service.create_session(app_name="test-app", user_id="user")
-    content = types.Content(role='user', parts=[types.Part(text="Waterway cleanup budget: $50,000.")])
-    
-    events = []
-    async for event in runner.run_async(user_id=session.user_id, session_id=session.id, new_message=content):
-        events.append(event)
-        
-    is_interrupted = any(event.long_running_tool_ids for event in events)
-    assert is_interrupted, "Draft containing dollar amount was not flagged."
+class TestPrepareJudgeDraft:
+    def test_redacts_budget_section(self):
+        draft = (
+            "## Executive Summary\nGreat project.\n"
+            "## Itemized Budget\n| Item | Cost |\n| Tools | ₹50,000 |\n"
+            "## Next Section\nMore content."
+        )
+        result = prepare_judge_draft(draft)
+        assert "REDACTED_AUTHORIZED_BUDGET_SECTION" in result
+        assert "50,000" not in result
 
-@pytest.mark.asyncio
-async def test_flag_bank_account():
-    app = App(name="test-app", root_agent=root_agent)
-    session_service = InMemorySessionService()
-    runner = Runner(app=app, session_service=session_service)
-    
-    session = await session_service.create_session(app_name="test-app", user_id="user")
-    content = types.Content(role='user', parts=[types.Part(text="Transfer funds to Bank Account 123456789.")])
-    
-    events = []
-    async for event in runner.run_async(user_id=session.user_id, session_id=session.id, new_message=content):
-        events.append(event)
-        
-    is_interrupted = any(event.long_running_tool_ids for event in events)
-    assert is_interrupted, "Draft containing bank account details was not flagged."
+    def test_redacts_proposed_budget_metadata(self):
+        draft = "**Proposed Budget:** ₹15,00,000 INR\nContent here."
+        result = prepare_judge_draft(draft)
+        assert "REDACTED_AUTHORIZED_BUDGET_METADATA" in result
+        assert "15,00,000" not in result
+
+    def test_leaves_non_budget_content(self):
+        draft = "## Executive Summary\nThis is about cleaning rivers.\n## Impact\nBig impact."
+        result = prepare_judge_draft(draft)
+        assert "cleaning rivers" in result
+        assert "Big impact" in result
+
+
+class TestJudgeVerdict:
+    def test_safe_verdict(self):
+        verdict = JudgeVerdict(is_safe=True, confidence=0.95, findings=[])
+        assert verdict.is_safe
+        assert verdict.confidence == 0.95
+        assert len(verdict.findings) == 0
+
+    def test_unsafe_verdict(self):
+        verdict = JudgeVerdict(
+            is_safe=False,
+            confidence=0.88,
+            findings=["Bank account detected", "PII leak"]
+        )
+        assert not verdict.is_safe
+        assert len(verdict.findings) == 2

@@ -1,18 +1,23 @@
 {
   "grants": [
     {
-      "grant_id": "ENV-2026-RIVER",
-      "grant_name": "Regional Waterway Restoration Fund",
-      "issuing_agency": "Department of Environmental Quality",
+      "grant_id": "JAL-2026-NADI",
+      "grant_name": "National River Conservation and Cleanup Grant",
+      "issuing_agency": "Ministry of Jal Shakti",
       "deadline": "2026-08-15",
       "requirements": {
-        "max_budget_usd": 25000,
-        "eligible_locations": ["Urban rivers", "Wetlands", "Lakes"],
+        "max_budget_inr": 2000000,
+        "eligible_locations": [
+          "Urban rivers",
+          "Ghats",
+          "Village ponds (Pokhars)"
+        ],
         "mandatory_sections": [
           "Executive Summary",
           "Ecological Impact Assessment",
-          "Volunteer Mobilization Plan",
-          "Itemized Budget"
+          "Community Mobilization Plan",
+          "Itemized Budget",
+          "NGO Darpan Registration Details"
         ],
         "word_count_limits": {
           "Executive Summary": 250,
@@ -21,25 +26,29 @@
         "prohibited_expenses": [
           "Full-time staff salaries",
           "Office rent",
-          "Political lobbying"
+          "Political lobbying or campaigning"
         ],
         "required_metrics": [
-          "Estimated tons of waste removed",
-          "Number of volunteers engaged"
+          "Estimated tonnes of waste removed",
+          "Number of local volunteers engaged"
         ]
       }
     },
     {
-      "grant_id": "URB-2026-CANOPY",
-      "grant_name": "Urban Canopy Expansion Grant",
-      "issuing_agency": "City Parks & Recreation Board",
+      "grant_id": "URB-2026-HARIYALI",
+      "grant_name": "Nagar Van (Urban Forest) Development Scheme",
+      "issuing_agency": "Ministry of Environment, Forest and Climate Change (MoEFCC)",
       "deadline": "2026-09-01",
       "requirements": {
-        "max_budget_usd": 50000,
-        "eligible_locations": ["City parks", "Public school grounds", "Sidewalks"],
+        "max_budget_inr": 5000000,
+        "eligible_locations": [
+          "Municipal parks",
+          "Government school compounds",
+          "Urban fringes"
+        ],
         "mandatory_sections": [
           "Community Needs Assessment",
-          "Species Selection Rationale",
+          "Indigenous Species Selection Rationale",
           "5-Year Maintenance & Watering Plan",
           "Budget Narrative"
         ],
@@ -48,23 +57,27 @@
           "Total Proposal": 3500
         },
         "prohibited_expenses": [
-          "Non-native tree species",
-          "Vehicles"
+          "Non-native/exotic tree species",
+          "Purchase of vehicles"
         ],
         "required_metrics": [
-          "Number of trees planted",
+          "Number of saplings planted",
           "Estimated CO2 offset per year"
         ]
       }
     },
     {
-      "grant_id": "EDU-2026-YOUTH",
-      "grant_name": "Next-Gen Climate Leaders Seed Grant",
-      "issuing_agency": "National Youth Climate Coalition",
+      "grant_id": "EDU-2026-YUVA",
+      "grant_name": "Yuva Jal Vayu (Youth Climate) Action Fund",
+      "issuing_agency": "NITI Aayog - Atal Innovation Mission",
       "deadline": "2026-10-31",
       "requirements": {
-        "max_budget_usd": 10000,
-        "eligible_locations": ["High schools", "Community centers"],
+        "max_budget_inr": 1000000,
+        "eligible_locations": [
+          "Government High Schools",
+          "Panchayat Bhavans",
+          "Community Centers"
+        ],
         "mandatory_sections": [
           "Project Overview",
           "Educational Methodology",
@@ -82,6 +95,70 @@
         "required_metrics": [
           "Number of students educated",
           "Pre- and post-program knowledge assessment plan"
+        ]
+      }
+    },
+    {
+      "grant_id": "AGRI-2026-KRISHI",
+      "grant_name": "Sustainable Agriculture & Organic Farming Seed Fund",
+      "issuing_agency": "National Bank for Agriculture and Rural Development (NABARD)",
+      "deadline": "2026-11-15",
+      "requirements": {
+        "max_budget_inr": 3500000,
+        "eligible_locations": [
+          "Rural farmlands",
+          "Farmer Producer Organisations (FPOs)",
+          "Tribal blocks"
+        ],
+        "mandatory_sections": [
+          "Soil Health Baseline Study",
+          "Cropping Pattern Strategy",
+          "Market Linkage & Income Plan",
+          "Detailed Project Report (DPR)"
+        ],
+        "word_count_limits": {
+          "Soil Health Baseline Study": 400,
+          "Total Proposal": 3000
+        },
+        "prohibited_expenses": [
+          "Chemical fertilizers or synthetic pesticides",
+          "Land acquisition or leasing costs"
+        ],
+        "required_metrics": [
+          "Number of farmers transitioned to organic practices",
+          "Percentage reduction in groundwater usage"
+        ]
+      }
+    },
+    {
+      "grant_id": "URJA-2026-SOURA",
+      "grant_name": "Gramin Solar Micro-Grid Decentralisation Innovation Fund",
+      "issuing_agency": "Ministry of New and Renewable Energy (MNRE)",
+      "deadline": "2026-12-05",
+      "requirements": {
+        "max_budget_inr": 7500000,
+        "eligible_locations": [
+          "Unelectrified hamlets",
+          "Rural primary health centers",
+          "Anganwadis"
+        ],
+        "mandatory_sections": [
+          "Technical Load Feasibility Study",
+          "Community Tariff & Maintenance Model",
+          "E-Waste & Battery Disposal Plan",
+          "Financial Viability Statement"
+        ],
+        "word_count_limits": {
+          "Technical Load Feasibility Study": 600,
+          "Total Proposal": 4000
+        },
+        "prohibited_expenses": [
+          "Diesel generators or hybrid fossil fuel components",
+          "Foreign consulting fees"
+        ],
+        "required_metrics": [
+          "Total Kilowatt-peak (kWp) generation capacity installed",
+          "Number of rural households provided with 24/7 clean energy"
         ]
       }
     }

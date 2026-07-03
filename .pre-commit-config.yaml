@@ -22,7 +22,7 @@ repos:
       # Block commits containing actual credentials or API keys
       - id: detect-api-keys
         name: Detect API Keys
-        entry: python -c "import sys, re; pat=re.compile(r'(GEMINI_API_KEY\s*=\s*[\'\"A-Za-z0-9_-]+|AIzaSy[A-Za-z0-9_-]{35})'); errors = [f for f in sys.argv[1:] if pat.search(open(f, errors='ignore').read())]; [print(f'Security Error: Potential API key or credential exposed in: {err}') for err in errors]; sys.exit(1 if errors else 0)"
+        entry: python -c "import sys, re; pat=re.compile(r'(?:GEMINI_API_KEY|GOOGLE_API_KEY|GOOGLE_GENAI_API_KEY)\s*=\s*[A-Za-z0-9_.\"\'+-]+|AIzaSy[A-Za-z0-9_-]{35}'); errors = [f for f in sys.argv[1:] if pat.search(open(f, errors='ignore').read())]; [print(f'Security Error: Potential API key or credential exposed in: {err}') for err in errors]; sys.exit(1 if errors else 0)"
         language: system
         files: \.(py|env|json|yaml|yml|md|txt)$
         exclude: ^\.venv/
