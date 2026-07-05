@@ -30,3 +30,5 @@ build/
 .idea
 
 graphify-out/*
+
+.agent/
