@@ -79,14 +79,19 @@ async def Router(ctx: Context, node_input: str | None = None):
         logger.warning("Orchestrator: LLM failed (%s), using fallback heuristics", exc)
         # Deterministic fallback
         input_lower = sanitized.lower()
-        if any(w in input_lower for w in ["hello", "hi", "greetings", "hey"]):
+        if len(sanitized.strip()) < 30 and any(w in input_lower for w in ["hello", "hi", "greetings", "hey"]):
             intent = "greet"
             reply = "Hello! 🌱 I'm your Eco Grant Writer Assistant. How can I help you draft your grant proposal?"
         elif any(w in input_lower for w in ["show", "view", "display", "proposal"]):
             intent = "show"
             reply = ""
         else:
-            intent = "intake"
+            if phase in ("drafting", "review"):
+                intent = "draft"
+            elif phase == "matching":
+                intent = "match"
+            else:
+                intent = "intake"
             reply = ""
 
     # Route classification

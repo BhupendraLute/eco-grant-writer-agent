@@ -169,7 +169,7 @@ async def ComplianceAuditor(ctx: Context, node_input: str | None = None):
 
         # Request human review
         prompt_msg = (
-            f"⚠️ Compliance Audit Flagged Violations:\n\n{local_report}\n\n"
+            f"⚠️ Compliance Audit Flagged Violations:\n\n{full_report}\n\n"
             "Please supply the missing information or details in the chat box below to resolve these issues."
         )
         return RequestInput(message=prompt_msg, interrupt_id="compliance_review_choice")

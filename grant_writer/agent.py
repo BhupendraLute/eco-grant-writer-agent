@@ -56,7 +56,9 @@ root_agent = Workflow(
         # Guided flow
         (IntakeInterview, GrantMatcher),
         (GrantMatcher, SectionDrafter),
-        (SectionDrafter, ComplianceAuditor),
+        (SectionDrafter, {
+            "review": ComplianceAuditor,
+        }),
 
         # Compliance gate
         (ComplianceAuditor, {

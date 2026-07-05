@@ -54,3 +54,16 @@ async def test_orchestrator_show_routing():
     res = await Router._func(ctx, "Show me the proposal.")
 
     assert ctx.route == "show"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_long_greeting_notes_routing():
+    from unittest.mock import patch
+    ctx = MockContext(state=GrantWriterState().model_dump())
+
+    # Send a long project description starting with "Hello", forcing LLM failure to test fallback
+    with patch("grant_writer.nodes.router.generate_json", side_effect=Exception("LLM failure")):
+        res = await Router._func(ctx, "Hello, we want to launch a tree plantation drive in Mumbai with 100 volunteers and ₹15 lakh budget.")
+
+    # Even if LLM fails, it should route to intake (due to length check in fallback) instead of greeting respond
+    assert ctx.route == "intake"

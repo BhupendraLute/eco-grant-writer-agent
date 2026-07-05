@@ -1,13 +1,46 @@
 """Pydantic models for the Eco Grant Writer agent state and messages."""
 
+from typing import Any
 from pydantic import BaseModel, Field
+from pydantic_core import core_schema
 
 
-class ChatMessage(BaseModel):
-    """A single chat message in the conversation history."""
+class ChatMessage(dict):
+    """A single chat message in the conversation history that is also a dict for JSON serialization."""
 
-    role: str = Field(..., description="'user' or 'assistant'")
-    content: str = Field(..., description="Message text content")
+    def __init__(self, *args, role: str = "", content: str = "", **kwargs):
+        super().__init__(*args, **kwargs)
+        if role:
+            self["role"] = role
+        if content:
+            self["content"] = content
+
+    @property
+    def role(self) -> str:
+        return self.get("role", "")
+
+    @property
+    def content(self) -> str:
+        return self.get("content", "")
+
+    def model_dump(self) -> dict:
+        return dict(self)
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: Any
+    ) -> core_schema.CoreSchema:
+        def validate(v: Any) -> ChatMessage:
+            if isinstance(v, ChatMessage):
+                return v
+            if isinstance(v, dict):
+                return ChatMessage(role=v.get("role", ""), content=v.get("content", ""))
+            raise TypeError("Expected dict or ChatMessage")
+
+        return core_schema.no_info_after_validator_function(
+            validate,
+            core_schema.any_schema(),
+        )
 
 
 class GrantWriterState(BaseModel):
