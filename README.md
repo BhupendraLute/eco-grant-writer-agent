@@ -188,7 +188,17 @@ Edit the `.env` file to add your credentials:
 GOOGLE_API_KEY="your-gemini-api-key-here"
 LLM_MODEL="gemini-2.5-flash"
 GOOGLE_GENAI_USE_ENTERPRISE=0
+
+# Optional OpenRouter key for free model fallback when Gemini quota is exhausted
+OPENROUTER_API_KEY="your-openrouter-api-key-here"
 ```
+
+> [!NOTE]
+> **Gemini Model Fallback Sequence**:
+> If the primary `LLM_MODEL` (e.g. `gemini-2.5-flash`) fails due to daily free-tier quota limits (20 requests), the agent will automatically try falling back to `gemini-3.5-flash`, then to `gemini-3.1-flash-lite`, and finally to OpenRouter (using free models like `meta-llama/llama-3.3-70b-instruct:free`, `google/gemma-4-31b-it:free`, etc.) if `OPENROUTER_API_KEY` is configured.
+> 
+> *Note: If you update your `.env` variables, you must restart the `uvicorn` backend server process to load the new values.*
+
 > [!IMPORTANT]
 > The `.env` file should never be committed to git. Local pre-commit hooks are configured to prevent this behavior.
 
@@ -205,8 +215,27 @@ pytest
 ```
 
 ### 7. Run the Application
+
+You can choose between the lightweight **Streamlit UI** or the modern **Next.js Frontend + FastAPI Backend** stack:
+
+#### Option A: Streamlit UI (Single-command)
 Start the conversational Streamlit user interface locally:
 ```bash
 streamlit run app.py
 ```
-This command will start the Streamlit web server and open a page in your web browser (typically at `http://localhost:8501`).
+This will open the interface in your browser (typically at `http://localhost:8501`).
+
+#### Option B: Next.js + FastAPI Stack (Dual-process)
+1. **Start the FastAPI Backend Server**:
+   ```bash
+   uvicorn api_server:app --port 8000 --reload
+   ```
+2. **Start the Next.js Frontend Web App**:
+   Open a separate terminal window, navigate to the `web` subdirectory, install the node modules, and run the development server:
+   ```bash
+   cd web
+   npm install
+   npm run dev
+   ```
+   This will start the web app at `http://localhost:3000`.
+
