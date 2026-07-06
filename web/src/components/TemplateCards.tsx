@@ -8,8 +8,7 @@ interface TemplateCardsProps {
 
 export default function TemplateCards({ onSelect }: TemplateCardsProps) {
   return (
-    <div className="flex-1 flex items-center justify-center p-8">
-      <div className="max-w-3xl w-full animate-slide-up">
+    <div className="w-full animate-slide-up">
         {/* Hero */}
         <div className="text-center mb-10">
           <div className="w-16 h-16 rounded-2xl bg-[var(--color-accent)] flex items-center justify-center mx-auto mb-5 shadow-[var(--shadow-glow-green)]">
@@ -56,7 +55,6 @@ export default function TemplateCards({ onSelect }: TemplateCardsProps) {
         <p className="text-center text-xs text-[var(--color-text-muted)] mt-8">
           Powered by Google ADK 2.0 & Gemini LLM — with MCP tools, compliance auditing & security guardrails
         </p>
-      </div>
     </div>
   );
 }

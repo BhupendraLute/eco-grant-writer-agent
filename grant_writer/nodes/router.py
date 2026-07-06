@@ -94,6 +94,20 @@ async def Router(ctx: Context, node_input: str | None = None):
                 intent = "intake"
             reply = ""
 
+    # Programmatic guardrails to enforce workflow state-machine integrity
+    if intent == "match" and not intake_complete:
+        logger.warning("Orchestrator: LLM classified as 'match' but intake is not complete. Enforcing 'intake'.")
+        intent = "intake"
+        reply = ""
+
+    if intent == "draft" and not grant_confirmed:
+        logger.warning("Orchestrator: LLM classified as 'draft' but grant is not confirmed. Enforcing 'match' or 'intake'.")
+        if intake_complete:
+            intent = "match"
+        else:
+            intent = "intake"
+        reply = ""
+
     # Route classification
     if intent in ("greet", "general"):
         ctx.state["respond_reply"] = reply or "I'm sorry, I can only help you with environmental grant proposal drafting."
