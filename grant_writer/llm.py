@@ -92,6 +92,7 @@ def generate(
         )
 
     start_time = time.monotonic()
+    response = None
     try:
         kwargs = {"model": model_id, "contents": contents}
         if effective_config:
@@ -105,7 +106,51 @@ def generate(
             elapsed,
             exc,
         )
-        raise
+
+        # Fallback to gemini-3.5-flash if the primary model failed and it wasn't already gemini-3.5-flash
+        if model_id != "gemini-3.5-flash":
+            logger.info("Attempting fallback to gemini-3.5-flash...")
+            try:
+                fallback_kwargs = {"model": "gemini-3.5-flash", "contents": contents}
+                if effective_config:
+                    fallback_kwargs["config"] = effective_config
+                response = client.models.generate_content(**fallback_kwargs)
+                logger.info("Fallback to gemini-3.5-flash succeeded")
+                model_id = "gemini-3.5-flash"
+            except Exception as fallback_exc:
+                logger.error("Fallback to gemini-3.5-flash also failed: %s", fallback_exc)
+
+        # Fallback to gemini-3.1-flash-lite if still failed and it wasn't already gemini-3.1-flash-lite
+        if response is None and model_id != "gemini-3.1-flash-lite":
+            logger.info("Attempting fallback to gemini-3.1-flash-lite...")
+            try:
+                fallback_kwargs = {"model": "gemini-3.1-flash-lite", "contents": contents}
+                if effective_config:
+                    fallback_kwargs["config"] = effective_config
+                response = client.models.generate_content(**fallback_kwargs)
+                logger.info("Fallback to gemini-3.1-flash-lite succeeded")
+                model_id = "gemini-3.1-flash-lite"
+            except Exception as fallback_exc:
+                logger.error("Fallback to gemini-3.1-flash-lite also failed: %s", fallback_exc)
+
+        if response is None:
+            # Check if OpenRouter fallback is configured
+            import os
+            api_key = os.environ.get("OPENROUTER_API_KEY")
+            if not api_key:
+                load_env()
+                api_key = os.environ.get("OPENROUTER_API_KEY")
+
+            if api_key:
+                logger.info("Attempting OpenRouter fallback due to Gemini error...")
+                try:
+                    text = generate_openrouter(contents, config=effective_config)
+                    response = MockResponse(text)
+                except Exception as or_exc:
+                    logger.error("OpenRouter fallback also failed: %s", or_exc)
+
+            if response is None:
+                raise exc
 
     elapsed = time.monotonic() - start_time
     response_text = (response.text or "").strip() if response.text else ""
@@ -127,6 +172,84 @@ def generate(
             )
 
     return response
+
+
+class MockResponse:
+    """Mock Gemini GenerateContentResponse object for OpenRouter fallbacks."""
+
+    def __init__(self, text: str):
+        self.text = text
+        self.function_calls = []
+
+
+def generate_openrouter(contents: str, config: types.GenerateContentConfig | None = None) -> str:
+    """Fallback generator that queries free models on OpenRouter via urllib."""
+    import json
+    import os
+    import urllib.request
+    import urllib.error
+
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        raise ValueError("OPENROUTER_API_KEY not found in environment")
+
+    # Free tier models to try in sequence (active OpenRouter slugs)
+    models = [
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemma-4-31b-it:free",
+        "meta-llama/llama-3.2-3b-instruct:free",
+    ]
+
+    prompt_str = str(contents)
+    last_exc = None
+
+    for model_name in models:
+        try:
+            logger.info("Querying OpenRouter fallback model: %s", model_name)
+
+            payload = {
+                "model": model_name,
+                "messages": [{"role": "user", "content": prompt_str}],
+            }
+
+            # Handle JSON mode if requested by config
+            if config and getattr(config, "response_mime_type", None) == "application/json":
+                payload["response_format"] = {"type": "json_object"}
+
+            data = json.dumps(payload).encode("utf-8")
+
+            req = urllib.request.Request(
+                "https://openrouter.ai/api/v1/chat/completions",
+                data=data,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://github.com/BhupendraLute/eco-grant-writer-agent",
+                    "X-Title": "Eco Grant Writer Agent",
+                },
+                method="POST",
+            )
+
+            with urllib.request.urlopen(req, timeout=30) as response:
+                resp_data = json.loads(response.read().decode("utf-8"))
+
+            choices = resp_data.get("choices", [])
+            if choices:
+                text = choices[0].get("message", {}).get("content", "")
+                if text:
+                    logger.info("OpenRouter fallback success: model=%s", model_name)
+                    return text
+
+            raise ValueError(f"Empty completions returned from model {model_name}")
+
+        except Exception as exc:
+            logger.warning("OpenRouter fallback model %s failed: %s", model_name, exc)
+            last_exc = exc
+
+    if last_exc:
+        raise last_exc
+    raise ValueError("All OpenRouter models failed")
+
 
 
 def generate_text(

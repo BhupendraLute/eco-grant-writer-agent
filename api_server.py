@@ -245,12 +245,18 @@ async def chat(req: ChatRequest):
                 last_text = json.dumps({"message": msg, "options": []})
                 interrupt_id = event.output.interrupt_id
 
-        # 2. Collect text from Content events
+        # 2. Collect text or HITL inputs from Content events
         if hasattr(event, "content") and event.content:
             if hasattr(event.content, "parts") and event.content.parts:
                 for part in event.content.parts:
                     if hasattr(part, "text") and part.text:
                         last_text = part.text
+                    elif hasattr(part, "function_call") and part.function_call:
+                        if part.function_call.name == "adk_request_input":
+                            args = part.function_call.args or {}
+                            msg = args.get("message") or ""
+                            last_text = json.dumps({"message": msg, "options": []})
+                            interrupt_id = args.get("interruptId") or part.function_call.id
 
         # 3. Accumulate state deltas
         if hasattr(event, "actions") and event.actions:
