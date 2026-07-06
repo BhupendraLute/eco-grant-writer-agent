@@ -12,7 +12,7 @@ The project is structured around a central workflow orchestrator that manages st
 
 ```mermaid
 graph TD
-    User(["User / Streamlit UI"]) <--> |"JSON / Async Events"| Runner[ADK Runner]
+    User(["User / Next.js Web App"]) <--> |"JSON / Async Events"| Runner[ADK Runner]
     
     subgraph Machine ["ADK Workflow State Machine"]
         START --> Router{Supervisor Router}
@@ -216,16 +216,9 @@ pytest
 
 ### 7. Run the Application
 
-You can choose between the lightweight **Streamlit UI** or the modern **Next.js Frontend + FastAPI Backend** stack:
+You can run the application using either the primary modern **Next.js Frontend + FastAPI Backend** stack or the lightweight **Streamlit UI** alternative:
 
-#### Option A: Streamlit UI (Single-command)
-Start the conversational Streamlit user interface locally:
-```bash
-streamlit run app.py
-```
-This will open the interface in your browser (typically at `http://localhost:8501`).
-
-#### Option B: Next.js + FastAPI Stack (Dual-process)
+#### Option A: Next.js + FastAPI Stack (Primary - Dual-process)
 1. **Start the FastAPI Backend Server**:
    ```bash
    uvicorn api_server:app --port 8000 --reload
@@ -238,4 +231,11 @@ This will open the interface in your browser (typically at `http://localhost:850
    npm run dev
    ```
    This will start the web app at `http://localhost:3000`.
+
+#### Option B: Streamlit UI (Alternative - Single-command)
+Start the conversational Streamlit user interface locally:
+```bash
+streamlit run app.py
+```
+This will open the interface in your browser (typically at `http://localhost:8501`).
 

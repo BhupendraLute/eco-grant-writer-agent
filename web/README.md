@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💻 Eco Grant Writer Next.js Web App
 
-## Getting Started
+This is the modern React frontend application for the **Eco Grant Writer** agent, built using **Next.js 16** (App Router), **React 19**, and **Tailwind CSS v4**.
 
-First, run the development server:
+It provides a rich, responsive, and secure user interface that connects directly with the backend FastAPI agent server (`api_server.py`) to coordinate proposal creation.
 
+---
+
+## ✨ Key Features
+
+1. **Intake Chat Interface**: A clean conversational chat area to interact with the agent, complete with custom suggestion chips (such as selecting matched grants or approving/rejecting compliance steps).
+2. **Side-by-Side Live Document Preview**: Renders the proposal drafts (individual sections and final compiled markdown) in real-time. Features status indicators showing guideline compliance and security check results.
+3. **Persistent State Sidebar**: Displays active metadata parsed from user notes (e.g., location, budget, volunteers, registration ID) and selected grant details so you always know what the agent has extracted.
+4. **Interactive Security Approval Modal**: Integrates with the agent's **Human-in-the-Loop (HITL)** security gate. When sensitive data or PII (Aadhaar, PAN, bank accounts, private salaries) is flagged, a modal prompts you to explicitly `Approve` (Bypass) or `Reject` (Abort) the execution.
+
+---
+
+## 🛠️ Tech Stack
+
+* **Framework:** Next.js 16 (App Router)
+* **Library:** React 19
+* **Styling:** Tailwind CSS v4 & PostCSS
+* **Language:** TypeScript
+
+---
+
+## 🚀 Getting Started
+
+### 📋 Prerequisites
+Make sure you have Node.js (version 18 or higher) and npm installed. The backend agent server must also be running.
+
+### 1. Install Dependencies
+Run the following command inside the `web` directory:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment (Optional)
+By default, the web app connects to the backend at `http://localhost:8000`. You can configure a custom backend URL by creating a `.env.local` file inside the `web` folder:
+```env
+NEXT_PUBLIC_API_URL="http://localhost:8000"
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Run the Development Server
+Start the frontend development server:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the interface.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Build for Production
+To build the application for production deployment:
+```bash
+npm run build
+npm start
+```
