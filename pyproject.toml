@@ -11,6 +11,8 @@ dependencies = [
     "streamlit>=1.30",
     "tenacity>=8.0",
     "structlog>=24.0",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
 ]
 
 [project.optional-dependencies]

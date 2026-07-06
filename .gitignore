@@ -32,3 +32,8 @@ build/
 graphify-out/*
 
 .agent/
+
+# Next.js frontend
+web/node_modules/
+web/.next/
+web/out/
