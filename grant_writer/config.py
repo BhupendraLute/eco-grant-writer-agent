@@ -91,3 +91,29 @@ def resolve_project_path(filename: str) -> str:
             return path
     # Return the project root path even if it doesn't exist yet
     return os.path.join(project_root, filename)
+
+
+def get_python_executable() -> str:
+    """Finds the python executable in the local virtual environment .venv.
+
+    Falls back to sys.executable if not found.
+    """
+    import sys
+    base_dir = os.path.dirname(__file__)
+    project_root = os.path.dirname(base_dir)
+
+    # Check Windows virtualenv
+    win_py = os.path.join(project_root, ".venv", "Scripts", "python.exe")
+    if os.path.exists(win_py):
+        return win_py
+
+    # Check Unix virtualenv
+    unix_py = os.path.join(project_root, ".venv", "bin", "python")
+    if os.path.exists(unix_py):
+        return unix_py
+
+    return sys.executable
+
+
+PYTHON_EXECUTABLE: str = get_python_executable()
+

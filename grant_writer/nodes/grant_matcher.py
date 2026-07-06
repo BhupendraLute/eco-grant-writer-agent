@@ -11,7 +11,7 @@ from google.adk.agents.context import Context
 from google.adk.events.request_input import RequestInput
 from google.genai import types
 
-from grant_writer.config import MCP_TIMEOUT_SECONDS, resolve_project_path
+from grant_writer.config import MCP_TIMEOUT_SECONDS, resolve_project_path, PYTHON_EXECUTABLE
 from grant_writer.models import ChatMessage
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ async def _fetch_all_grants_from_mcp() -> list[dict]:
 
     server_script = resolve_project_path("mcp_server.py")
     server_params = StdioServerParameters(
-        command=sys.executable,
+        command=PYTHON_EXECUTABLE,
         args=[server_script],
     )
 
@@ -52,7 +52,7 @@ async def _fetch_grant_guidelines(grant_name: str) -> str:
 
     server_script = resolve_project_path("mcp_server.py")
     server_params = StdioServerParameters(
-        command=sys.executable,
+        command=PYTHON_EXECUTABLE,
         args=[server_script],
     )
 
