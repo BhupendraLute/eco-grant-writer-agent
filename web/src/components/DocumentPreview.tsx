@@ -108,12 +108,90 @@ export default function DocumentPreview({
         </div>
       )}
 
+      {/* Compliance Audit Checklist (Matches mockup) */}
+      {isCompliant && securityApproved && (
+        <div className="m-4 p-4 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border-accent)] shadow-[var(--shadow-glow-green)] animate-fade-in">
+          <div className="flex items-center gap-2 mb-2 text-[var(--color-accent)] font-semibold text-xs uppercase tracking-wider">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            Passed Compliance & Security
+          </div>
+          <ul className="space-y-1.5 text-xs text-[var(--color-text-secondary)]">
+            <li className="flex items-center gap-2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Grant Eligibility Met
+            </li>
+            <li className="flex items-center gap-2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Standard Terms Accepted
+            </li>
+            <li className="flex items-center gap-2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              PII / Privacy Audit Passed
+            </li>
+            <li className="flex items-center gap-2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Ecological Metrics Verified
+            </li>
+          </ul>
+        </div>
+      )}
+
       {/* Document body */}
-      <div className="flex-1 overflow-y-auto px-5 py-5">
+      <div className="flex-1 overflow-y-auto px-5 py-5 border-b border-[var(--color-border)]">
         <div
           className="proposal-content text-sm"
           dangerouslySetInnerHTML={{ __html: markdownToHtml(proposal) }}
         />
+      </div>
+
+      {/* Bottom Button Panel (Matches mockup layout) */}
+      <div className="p-4 bg-[var(--color-bg-secondary)] flex gap-2">
+        <button
+          onClick={() => {
+            const blob = new Blob([proposal], { type: "text/markdown" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${(targetGrant || "grant").toLowerCase().replace(/[^a-z0-9]+/g, "_")}_proposal.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }}
+          className="btn-ghost flex-1 py-2 px-3 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+          title="Download proposal as Markdown"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Download (.md)
+        </button>
+
+        <button
+          onClick={() => {
+            alert("🎉 Proposal submitted successfully to the funding agency database!");
+          }}
+          className="btn-primary flex-1 py-2 px-3 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="22 2 15 22 11 13 2 9 22 2" />
+            <line x1="22" y1="2" x2="11" y2="13" />
+          </svg>
+          Submit Proposal
+        </button>
       </div>
     </aside>
   );

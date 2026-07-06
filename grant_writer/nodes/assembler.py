@@ -58,23 +58,6 @@ async def FinalAssembler(ctx: Context, node_input: str | None = None):
         parts.append(f"**Duration:** {duration}")
     parts.append("\n---\n")
 
-def _clean_content(content: str, section_name: str) -> str:
-    """Strips leading markdown headers matching the section name to avoid duplicates."""
-    import re
-    cleaned = content.strip()
-    lines = cleaned.split("\n")
-    if lines:
-        first_line = lines[0].strip()
-        # Strip leading # markdown elements
-        norm_first = re.sub(r"^#+\s*", "", first_line).strip().lower()
-        # Strip trailing colons
-        norm_first = re.sub(r":\s*$", "", norm_first)
-        norm_sec = section_name.strip().lower()
-        if norm_first == norm_sec:
-            cleaned = "\n".join(lines[1:]).strip()
-    return cleaned
-
-
     # Assemble sections in order
     for section_name in mandatory_sections:
         content = sections_drafted.get(section_name)
@@ -115,3 +98,21 @@ def _clean_content(content: str, section_name: str) -> str:
     ctx.state["chat_history"] = chat_history
 
     return types.Content(parts=[types.Part(text=json.dumps(response_data))])
+
+
+def _clean_content(content: str, section_name: str) -> str:
+    """Strips leading markdown headers matching the section name to avoid duplicates."""
+    import re
+    cleaned = content.strip()
+    lines = cleaned.split("\n")
+    if lines:
+        first_line = lines[0].strip()
+        # Strip leading # markdown elements
+        norm_first = re.sub(r"^#+\s*", "", first_line).strip().lower()
+        # Strip trailing colons
+        norm_first = re.sub(r":\s*$", "", norm_first)
+        norm_sec = section_name.strip().lower()
+        if norm_first == norm_sec:
+            cleaned = "\n".join(lines[1:]).strip()
+    return cleaned
+
