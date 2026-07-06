@@ -20,9 +20,9 @@ CLASSIFICATION CRITERIA:
 1. "greet": If the user says hello, hi, good morning, greetings, hello there, or similar greetings.
 2. "general": If the user asks out-of-scope general questions (e.g. trivia, coding questions, weather, capital of a country, unrelated calculations).
 3. "show": If the user asks to see, view, display, print, or show the current proposal draft or progress.
-4. "match": If the current phase is "matching" or the user is looking for grant guidelines, searching for grants, or selecting/confirming a grant.
-5. "draft": If the current phase is "drafting" / "review" / "complete", or the user is providing specific content to write/edit/refine sections of the proposal.
-6. "intake": If the user is sharing notes, details about their organization, description of their project, location, budget, or answering interview questions.
+4. "match": ONLY allowed if "Intake Interview Complete" is true. Use this when the user wants to search for grants, match grants, or select/confirm a grant program.
+5. "draft": ONLY allowed if "Target Grant Selected & Confirmed" is true. Use this when the user is refining or drafting sections of the proposal, or when a grant is selected and confirmed.
+6. "intake": Use this if "Intake Interview Complete" is false (and the message is not a "greet" or "general"), or if the user is sharing notes, details about their organization, description of their project, location, budget, or answering interview questions.
 
 Return a JSON object with exactly these keys:
 {{

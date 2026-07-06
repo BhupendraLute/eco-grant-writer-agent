@@ -1,37 +1,20 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 
-interface ChatInputProps {
-  onSend: (message: string) => void;
+interface CustomNotesInputProps {
+  onSubmit: (notes: string) => void;
   loading: boolean;
-  placeholder?: string;
 }
 
-export default function ChatInput({
-  onSend,
-  loading,
-  placeholder = "Describe your project or ask a question…",
-}: ChatInputProps) {
-  const [value, setValue] = useState("");
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (!loading) {
-      inputRef.current?.focus();
-    }
-  }, [loading]);
+export default function CustomNotesInput({ onSubmit, loading }: CustomNotesInputProps) {
+  const [customNotes, setCustomNotes] = useState("");
 
   const handleSubmit = () => {
-    const trimmed = value.trim();
+    const trimmed = customNotes.trim();
     if (!trimmed || loading) return;
-    onSend(trimmed);
-    setValue("");
-
-    // Reset textarea height
-    if (inputRef.current) {
-      inputRef.current.style.height = "auto";
-    }
+    onSubmit(trimmed);
+    setCustomNotes("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -41,38 +24,26 @@ export default function ChatInput({
     }
   };
 
-  const handleInput = () => {
-    if (inputRef.current) {
-      inputRef.current.style.height = "auto";
-      inputRef.current.style.height = `${Math.min(
-        inputRef.current.scrollHeight,
-        120
-      )}px`;
-    }
-  };
-
   return (
-    <div className="border-t border-[var(--color-border)] p-4">
-      <div className="glass-input flex items-end gap-3 p-3 max-w-full">
+    <div className="w-full max-w-3xl mx-auto px-8 mb-8 animate-slide-up" style={{ animationDelay: "300ms" }}>
+      <div className="text-xs text-[var(--color-text-secondary)] font-semibold mb-2 uppercase tracking-wider text-center">
+        Or start with your own project notes
+      </div>
+      <div className="glass-input flex items-end gap-3 p-3 w-full">
         <textarea
-          ref={inputRef}
-          value={value}
-          onChange={(e) => {
-            setValue(e.target.value);
-            handleInput();
-          }}
+          value={customNotes}
+          onChange={(e) => setCustomNotes(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder="Paste details about your NGO, location, target budget, number of volunteers, and registration info to begin drafting..."
+          rows={3}
           disabled={loading}
-          rows={1}
           className="flex-1 bg-transparent text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] resize-none outline-none text-sm leading-6 max-h-[120px]"
         />
-
         <button
           onClick={handleSubmit}
-          disabled={!value.trim() || loading}
-          className="btn-primary flex items-center justify-center w-10 h-10 !p-0 rounded-lg flex-shrink-0"
-          aria-label="Send message"
+          disabled={!customNotes.trim() || loading}
+          className="btn-primary flex items-center justify-center w-10 h-10 !p-0 rounded-lg flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Start drafting"
         >
           {loading ? (
             <svg

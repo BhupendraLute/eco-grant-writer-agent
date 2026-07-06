@@ -29,7 +29,7 @@ export default function ChatPanel({
           className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
           style={{ animationDelay: `${Math.min(i * 30, 200)}ms` }}
         >
-          <div className="flex flex-col gap-2 max-w-[85%]">
+          <div className={`flex flex-col gap-2 max-w-[85%] ${msg.role === "user" ? "items-end" : "items-start"}`}>
             {/* Bubble */}
             <div
               className={

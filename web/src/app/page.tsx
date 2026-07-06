@@ -7,6 +7,7 @@ import Sidebar from "@/components/Sidebar";
 import ChatPanel from "@/components/ChatPanel";
 import ChatInput from "@/components/ChatInput";
 import TemplateCards from "@/components/TemplateCards";
+import CustomNotesInput from "@/components/CustomNotesInput";
 import SecurityModal from "@/components/SecurityModal";
 import DocumentPreview from "@/components/DocumentPreview";
 
@@ -50,8 +51,7 @@ export default function Home() {
 
   // Check if we should show the security modal based on interruptId
   const shouldShowSecurityModal =
-    interruptId &&
-    interruptId !== "compliance_review_choice" &&
+    interruptId === "security_financial_review" &&
     !showSecurityModal;
 
   // If there's a security interrupt, show the modal
@@ -92,7 +92,12 @@ export default function Home() {
         {/* Center: Chat or Welcome */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {isWelcome ? (
-            <TemplateCards onSelect={handleTemplateSelect} />
+            <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto">
+              <div className="max-w-3xl w-full flex flex-col gap-6">
+                <TemplateCards onSelect={handleTemplateSelect} />
+                <CustomNotesInput onSubmit={handleTemplateSelect} loading={loading} />
+              </div>
+            </div>
           ) : (
             <>
               <ChatPanel
